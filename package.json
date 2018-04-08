@@ -1,0 +1,21 @@
+{
+  "name": "autoregressiontester",
+  "version": "1.0.0",
+  "description": "An automated Regression Tester built on top of Puppeteer",
+  "main": "y",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "automated",
+    "regression",
+    "tester",
+    "node",
+    "puppeteer"
+  ],
+  "author": "paco",
+  "license": "ISC",
+  "dependencies": {
+    "puppeteer": "^1.2.0"
+  }
+}
