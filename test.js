@@ -41,12 +41,10 @@ const puppeteer = require('puppeteer');
 //   const resultsSelector = '.gsc-results .gsc-thumbnail-inside a.gs-title';
 //   await page.waitForSelector(resultsSelector);
 
-//   // Extract the results from the page.
 //   const links = await page.evaluate(resultsSelector => {
 //     const anchors = Array.from(document.querySelectorAll(resultsSelector));
 //     return anchors.map(anchor => {
 //       const title = anchor.textContent.split('|')[0].trim();
-//       return `${title} - ${anchor.href}`;
 //     });
 //   }, resultsSelector);
 //   console.log(links.join('\n'));
@@ -55,75 +53,100 @@ const puppeteer = require('puppeteer');
 // })();
 
 (async() => {
-  const browser = await puppeteer.launch()
-  const page = await browser.newPage()
 
+  const folderName = 'autoRegressionTester'
+
+  // launch browser, open brower page
+  const t = () => ((new Date()).toTimeString()).slice(0,8)
+  const t1 = t()
+  console.log(`puppeteer: Hi, I'm the puppeteer.  I will now test your website.  The time is ${t1}\n`)
+  const browser = await puppeteer.launch()
+  const t2 = t()
+  console.log(`puppeteer: I launched the Chromium browser at ${t2}.\n`)
+  const page = await browser.newPage()
+  const t3 = t()
+  console.log(`puppeteer: I opened a Chromium browser tab at ${t3}.\n`)
   const urls = ['https://platerate.guru/', 'http://localhost:3003/']
 
-  const timeout = 1000 * 60 * 30
-
-
+  // Navigate to URL
+  const timeout = 1000 * 60 * 5
   await page.goto(urls[0], timeout)
+  const t4 = t()
+  console.log(`puppeteer: I navigated to ${urls[0]} at ${t4}.\n`)
+
+  // Click on login button
   const loginButton = 'a[href="/users/login"]'
-  await page.waitForSelector(loginButton, timeout)
+  await page.waitForSelector(loginButton, true, false, timeout)
   await page.click(loginButton)
+  const t5 = t()
+  console.log(`puppeteer: I clicked on the login button at ${t5}.\n`)
 
+  // Type email
   const emailInputSelector = 'input[type="email"]'
-  await page.waitForSelector(emailInputSelector, timeout)
+  await page.waitForSelector(emailInputSelector, true, false, timeout)
   await page.type(emailInputSelector, 'palmtreerooskee@gmail.com')
+  const t6 = t()
+  console.log(`puppeteer: I typed the email in the email input at ${t6}.\n`)
 
+  // Type password
   const passInputSelector = 'input[type="password"]'
-  await page.waitForSelector(passInputSelector, timeout)
+  await page.waitForSelector(passInputSelector, true, false, timeout)
   await page.type(passInputSelector, 'Pirho1')
+  const t7 = t()
+  console.log(`puppeteer: I typed the password in the password input at ${t7}.\n`)
 
+  // Click on submit
   const submitButton = 'button[type="submit"]'
-  await page.waitForSelector(submitButton, timeout)
+  await page.waitForSelector(submitButton, true, false, timeout)
   await page.click(submitButton)
+  const t8 = t()
+  console.log(`puppeteer: I clicked on the submit button at ${t8}.\n`)
 
+  // Click on Restaurant Tab
   const restaurantTab = '#toRestaurant'
-  await page.waitForSelector(restaurantTab, timeout)
+  await page.waitForSelector(restaurantTab, true, false, timeout)
   await page.click(restaurantTab)
+  const t9 = t()
+  console.log(`puppeteer: I clicked on the restaurant tab at ${t9}.\n`)
 
-  // There is a bug in the search functionality where if a user is logged in and searches for restaurants, an error alert pops up.  The user (this only happens to logged in users) must wait for the auto-search to return a list of nearby restaurants before being able to manually input another search.  So puppeteer here waits for the '.results-wrapper', see below, before proceeding with the search 
+  // Type name of restaurant
+  const restaurantInput = '.restaurant-input'
+  await page.waitForSelector(restaurantInput, true, false, timeout)
+  await page.type(restaurantInput, `Hetman's`)
+  const t10 = t()
+  console.log(`puppeteer: I typed 'Hetman's' into the input at ${t10}.\n`)
 
-  const results = '.results-wrapper'
+  // Type zipcode
+  const locationInput = '#locationinput'
+  await page.waitForSelector(locationInput, true, false, timeout)
+  await page.type(locationInput, `11385`)
+  const t11 = t()
+  console.log(`puppeteer: I typed the zip code 11835 into the location input at ${t11}.\n`)
+
+  // Click on Search
+  const searchbutton = '#searchbutton'
+  await page.waitForSelector(searchbutton, true, false, timeout)
+  await page.click(searchbutton)
+  const t12 = t()
+  console.log(`puppeteer: I clicked on the search button at ${t12}.\n`)
+
+  // Click on 'View This restaurant'
+  const viewVenueBtn = '.view-venue-btn'
+  await page.waitForSelector(viewVenueBtn, true, false, timeout)
+  await page.click(viewVenueBtn)
+  console.log(`puppeteer: I clicked on the 'VIEW THIS RESTAURANT' button at ${t12}.\n`)
+
+  const fileName = 'platerate.png'
+  await page.screenshot({path: fileName, fullPage: true})
+
+  console.log(`puppeteer: I closeI took a screenshot: to view it, look for the file named ${fileName} in my root folder (${folderName}).\n`)
+
+  console.log(`puppeteer: I will now close the browser.  From launch to close, ${t12-t1} milliseconds, or ${(t12-t1)/1000} seconds or ${(t12-t1)/(1000 * 60)} minutes have elapsed \n`)
 
   process.on("unhandledRejection", (reason, p) => {
     console.error("Unhandled Rejection at: Promise", p, "reason:", reason);
-    browser.close();
-  });
-
-  await page.waitForSelector(results, true, false, timeout)
-
-  // await page.type('#search', 'Hetman')
-
-  // const submitButton2 = 'button[type="submit"]'
-  // await page.waitForSelector(submitButton2)
-  // await page.click(submitButton2)
-
-  await page.screenshot({path: 'platerate.png', fullPage: true});
-
-
-  // console.log("loginButton = ", loginButton.innerHTML)
-
-  // await page.click(loginButton)
-
-  // const emailInputSelector = '.group-email.col-sm-8.form-control .login-input'
-  // await page.waitForSelector(emailInputSelector)
-  // await page.type(emailInputSelector, 'palmtreerooskee@gmail.com')
-
-  // const passInputSelector = '.group-password.col-sm-8.form-control .login-input'
-  // await page.waitForSelector(passInputSelector)
-  // await page.type(passInputSelector, 'Pirho1')
-
-  // const loginSubmitButton = '.login .btn .btn-login .green .loginBtn'
-  // await page.waitForSelector(loginSubmitButton)
-  // await page.click(loginSubmitButton)
-
-  // const userName = '.loggedin-text.green'
-  // await page.waitForSelector(userName)
-
-  // console.log("user name = ", userName.textContent)
+    browser.close()
+  })
 
   await browser.close()
-})();
+})()
