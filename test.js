@@ -58,7 +58,9 @@ const puppeteer = require('puppeteer');
 
   // launch browser, open brower page
   const t = () => ((new Date()).toTimeString()).slice(0,8)
+  const tn = () => (new Date()).getTime()
   const t1 = t()
+  const tn1 = tn()
   console.log(`puppeteer: Hi, I'm the puppeteer.  I will now test your website.  The time is ${t1}\n`)
   const browser = await puppeteer.launch()
   const t2 = t()
@@ -136,12 +138,20 @@ const puppeteer = require('puppeteer');
   await page.click(viewVenueBtn)
   console.log(`puppeteer: I clicked on the 'VIEW THIS RESTAURANT' button at ${t12}.\n`)
 
+  // Upload Restaurant picture
+  const submitAphotoButton = await page.$('input[type=file]')
+  await submitAphotoButton.uploadFile('./pic.jpg')
+  const t13 = t()
+  const tn13 = tn()
+  console.log(`puppeteer: I uploaded a restaurant picture at ${t13}.\n`)
+
+
   const fileName = 'platerate.png'
   await page.screenshot({path: fileName, fullPage: true})
 
-  console.log(`puppeteer: I closeI took a screenshot: to view it, look for the file named ${fileName} in my root folder (${folderName}).\n`)
+  console.log(`puppeteer: I took a screenshot: to view it, look for the file named ${fileName} in my root folder (${folderName}).\n`)
 
-  console.log(`puppeteer: I will now close the browser.  From launch to close, ${t12-t1} milliseconds, or ${(t12-t1)/1000} seconds or ${(t12-t1)/(1000 * 60)} minutes have elapsed \n`)
+  console.log(`puppeteer: I will now close the browser.  From launch to close, ${tn13-tn1} milliseconds, or ${(tn13-tn1)/1000} seconds or ${(tn13-tn1)/(1000 * 60)} minutes have elapsed \n`)
 
   process.on("unhandledRejection", (reason, p) => {
     console.error("Unhandled Rejection at: Promise", p, "reason:", reason);
