@@ -22,6 +22,7 @@
 'use strict';
 
 const puppeteer = require('puppeteer');
+require('dotenv').config()
 
 // (async() => {
 //   const browser = await puppeteer.launch();
@@ -54,6 +55,9 @@ const puppeteer = require('puppeteer');
 
 (async() => {
 
+  const email = [process.env.pacoEmail, process.env.garretEmail, process.env.sujenEmail]
+  const pass = [process.env.pacoPass, process.env.garretPass, process.env.sujenPass]
+
   const folderName = 'autoRegressionTester'
 
   // launch browser, open brower page
@@ -68,7 +72,7 @@ const puppeteer = require('puppeteer');
   const page = await browser.newPage()
   const t3 = t()
   console.log(`puppeteer: I opened a Chromium browser tab at ${t3}.\n`)
-  const urls = ['https://platerate.guru/', 'http://localhost:3003/']
+  const urls = ['https://staging.platerate.guru/', 'http://localhost:3003/']
 
   // Navigate to URL
   const timeout = 1000 * 60 * 5
@@ -86,14 +90,14 @@ const puppeteer = require('puppeteer');
   // Type email
   const emailInputSelector = 'input[type="email"]'
   await page.waitForSelector(emailInputSelector, true, false, timeout)
-  await page.type(emailInputSelector, 'palmtreerooskee@gmail.com')
+  await page.type(emailInputSelector, email[0])//put your email
   const t6 = t()
   console.log(`puppeteer: I typed the email in the email input at ${t6}.\n`)
 
   // Type password
   const passInputSelector = 'input[type="password"]'
   await page.waitForSelector(passInputSelector, true, false, timeout)
-  await page.type(passInputSelector, 'Pirho1')
+  await page.type(passInputSelector, pass[0])
   const t7 = t()
   console.log(`puppeteer: I typed the password in the password input at ${t7}.\n`)
 
@@ -103,47 +107,73 @@ const puppeteer = require('puppeteer');
   await page.click(submitButton)
   const t8 = t()
   console.log(`puppeteer: I clicked on the submit button at ${t8}.\n`)
+  
+  //default food tab for finding a food
+  const foodInput = '.item-input'
+  await page.waitForSelector(foodInput,true,false,timeout)
+  await page.type(foodInput, 'Pizza')
+  const t9 = t()
+  console.log(`puppeteer: I typed 'Pizza' in to the input at ${t9}.\n`)
+  
+  // Type zipcode
+  const locationInput = '#locationinput'
+  await page.waitForSelector(locationInput, true, false, timeout)
+  await page.type(locationInput, `19406`)
+  const t10 = t()
+  console.log(`puppeteer: I typed the zip code 19406 into the location input at ${t10 }.\n`)
+  
+  // Click on Search food & drink
+  const searchbutton = 'button[id="searchbutton"]'
+  await page.waitForSelector(searchbutton, true, false, timeout)
+  await page.click(searchbutton)
+  const t11 = t()
+  const tn11 = tn()
+  console.log(`puppeteer: I clicked on the search button at ${t11}.\n`)
+  
 
-  // Click on Restaurant Tab
+ /* //Click on Restaurant Tab
   const restaurantTab = '#toRestaurant'
   await page.waitForSelector(restaurantTab, true, false, timeout)
   await page.click(restaurantTab)
-  const t9 = t()
-  console.log(`puppeteer: I clicked on the restaurant tab at ${t9}.\n`)
+  const t12 = t()
+  console.log(`puppeteer: I clicked on the restaurant tab at ${t12}.\n`)
 
-  // Type name of restaurant
+   //Type name of restaurant
   const restaurantInput = '.restaurant-input'
   await page.waitForSelector(restaurantInput, true, false, timeout)
   await page.type(restaurantInput, `Hetman's`)
-  const t10 = t()
-  console.log(`puppeteer: I typed 'Hetman's' into the input at ${t10}.\n`)
+  const t13 = t()
+  console.log(`puppeteer: I typed 'Hetman's' into the input at ${t13}.\n`)
 
   // Type zipcode
   const locationInput = '#locationinput'
   await page.waitForSelector(locationInput, true, false, timeout)
   await page.type(locationInput, `11385`)
-  const t11 = t()
-  console.log(`puppeteer: I typed the zip code 11835 into the location input at ${t11}.\n`)
+  const t14 = t()
+  console.log(`puppeteer: I typed the zip code 11835 into the location input at ${t14}.\n`)
 
   // Click on Search
   const searchbutton = '#searchbutton'
   await page.waitForSelector(searchbutton, true, false, timeout)
   await page.click(searchbutton)
-  const t12 = t()
-  console.log(`puppeteer: I clicked on the search button at ${t12}.\n`)
+  const t15 = t()
+  console.log(`puppeteer: I clicked on the search button at ${t15}.\n`)
+ 
 
   // Click on 'View This restaurant'
   const viewVenueBtn = '.view-venue-btn'
   await page.waitForSelector(viewVenueBtn, true, false, timeout)
   await page.click(viewVenueBtn)
   console.log(`puppeteer: I clicked on the 'VIEW THIS RESTAURANT' button at ${t12}.\n`)
+  */
+   
 
   // Upload Restaurant picture
-  const submitAphotoButton = await page.$('input[type=file]')
+  /*const submitAphotoButton = await page.$('input[type=file]')
   await submitAphotoButton.uploadFile('./pic.jpg')
   const t13 = t()
   const tn13 = tn()
-  console.log(`puppeteer: I uploaded a restaurant picture at ${t13}.\n`)
+  console.log(`puppeteer: I uploaded a restaurant picture at ${t13}.\n`)*/
 
 
   const fileName = 'platerate.png'
@@ -151,7 +181,7 @@ const puppeteer = require('puppeteer');
 
   console.log(`puppeteer: I took a screenshot: to view it, look for the file named ${fileName} in my root folder (${folderName}).\n`)
 
-  console.log(`puppeteer: I will now close the browser.  From launch to close, ${tn13-tn1} milliseconds, or ${(tn13-tn1)/1000} seconds or ${(tn13-tn1)/(1000 * 60)} minutes have elapsed \n`)
+  console.log(`puppeteer: I will now close the browser.  From launch to close, ${tn11-tn1} milliseconds, or ${(tn11-tn1)/1000} seconds or ${(tn11-tn1)/(1000 * 60)} minutes have elapsed \n`)
 
   process.on("unhandledRejection", (reason, p) => {
     console.error("Unhandled Rejection at: Promise", p, "reason:", reason);

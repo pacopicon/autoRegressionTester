@@ -1,21 +1,24 @@
 {
-  "name": "autoregressiontester",
+  "name": "regressiontester",
   "version": "1.0.0",
-  "description": "An automated Regression Tester built on top of Puppeteer",
-  "main": "y",
+  "description": "A Node utility made for headless browser testing with Puppeteer",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "automated",
-    "regression",
-    "tester",
-    "node",
-    "puppeteer"
+    "Puppeteer",
+    "Regression",
+    "testing"
   ],
   "author": "paco",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^5.0.1",
     "puppeteer": "^1.2.0"
+  },
+  "devDependencies": {
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.10.0"
   }
 }
