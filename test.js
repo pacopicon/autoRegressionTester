@@ -26,15 +26,37 @@ require('dotenv').config();
 
 (async() => {
 
+  // Public Vars
   const email = [process.env.pacoEmail, process.env.garretEmail, process.env.sujenEmail]
   const pass = [process.env.pacoPass, process.env.garretPass, process.env.sujenPass]
-
   const folderName = 'autoRegressionTester'
 
-  // launch browser, open brower page
+  // Public functions
   const t = () => ((new Date()).toTimeString()).slice(0,8)
   const tn = () => (new Date()).getTime()
   const tn1 = tn()
+
+  const click = async (elem, title) => {
+    await page.waitForSelector(elem, true, false, timeout)
+    await page.click(elem)
+    console.log(`puppeteer: I clicked on the ${title} at ${t()}.\n`)
+  }
+  const type = async(elem, input, title) => {
+    await page.waitForSelector(elem, true, false, timeout)
+    await page.type(elem, input, title)
+    console.log(`puppeteer: I typed the ${title} in the ${title} input at ${t()}.\n`)
+  }
+  const clickCheckbox = (elem, title) => {
+    const checkbox = await page.$(elem)
+    await checkbox.click()
+    const checked = await page.evaluate(checkbox => checkbox.checked, checkbox)
+    console.log(`${title} was ${!checked ? 'NOT' : ''} checked`)
+  }
+
+
+  // launch browser, open brower page
+  
+
   console.log(`puppeteer: Hi, I'm the puppeteer.  I will now test your website.  The time is ${t()}\n`)
   const browser = await puppeteer.launch()
   console.log(`puppeteer: I launched the Chromium browser at ${t()}.\n`)
@@ -47,150 +69,134 @@ require('dotenv').config();
   await page.goto(urls[0], timeout)
   console.log(`puppeteer: I navigated to ${urls[0]} at ${t()}.\n`)
 
-  const click = async (elem, title) => {
-    await page.waitForSelector(elem, true, false, timeout)
-    await page.click(elem)
-    console.log(`puppeteer: I clicked on the ${title} at ${t()}.\n`)
+  // Click on login button
+  await click('a[href="/users/login"]', 'Login Button')
+  // Type email
+  await type('input[type="email"]', email[0], 'email')
+  // Type password
+  await type('input[type="password"]', email[0], 'password')
+  // Click on submit
+  await click('button[type="submit"]', 'Submit Button')
+  // Click on the navbar toggle
+  await click('.navbar-toggle', 'Navbar Toggle')
+  // Click on My PlateRate Link
+  await click('a[href="/users/profile"]', 'My PlateRate link')
+  // Click on Name and Email accordion
+  await click('a:nth-child(1)', 'Name and Email accordion')
+  // Upload picture
+  const uploadInput = page.$('#fileInput')
+  await uploadInput.uploadFile('selfie.jpeg')
+  // Type First Name
+  await type('input#firstName', 'Bob', 'First Name')
+  // Type Last Name
+  await type('input#lastName', 'Johnson', 'Last Name')
+  // Type Email
+  await type('input#email', 'BobJohnson@gmail.com', 'Email')
+  // Click on Personal Information
+  await click('a:nth-child(2)', 'Personal Information accordion')
+  // Type Street
+  await type('input#street', '500 West 42nd Street', 'Street')
+  // Type City
+  await type('input#city', 'New York', 'City')
+  // Type Zip code
+  await type('input#postalCode', '10036', 'Zip Code')
+  // Type Country
+  await type('input#country', 'USA', 'Country')
+  // Type Phone
+  await type('input#phone', '555-5555', 'Phone')
+  // Type Birthday
+  await type('input#birthday', '05/05/2000', 'Birthday')
+  // Type Gender
+  await page.waitForSelector('select#gender', true, false, timeout)
+  await page.click('select#gender', 'Other')
+  console.log(`puppeteer: I selected 'Other' as my gender at ${t()}.\n`)
+  // Check Contact Preferences: By Email
+  clickCheckbox('input#byEmail', 'By Email')
+  // Check Contact Preferences: By Sms
+  clickCheckbox('input#bySms', 'By Text Message')
+  // Check Contact Preferences: By Sms
+  clickCheckbox('input#never', 'Please don\'t contact me')
+
+  // Click on Dietary Preferences
+  await click('a:nth-child(3)', 'Dietary Preferences accordion')
+  // Check Dietary Preferences
+  for (let i = 0; i<47; i++) {
+    const selector = `input:nth-child(${i}).diet-options`
+    console.log(`Clicking ${selector}`)
+    const checkbox = await page.$(selector)
+    await checkbox.click()
+    const checked = await page.evaluate(checkbox => checkbox.checked, checkbox)
+    console.log(`${selector} is checked`, checked)
   }
 
-  // Click on login button
-  const loginButton = 'a[href="/users/login"]'
-  await page.waitForSelector(loginButton, true, false, timeout)
-  await page.click(loginButton)
-  console.log(`puppeteer: I clicked on the login button at ${t()}.\n`)
-
-  // Type email
-  const emailInputSelector = 'input[type="email"]'
-  await page.waitForSelector(emailInputSelector, true, false, timeout)
-  await page.type(emailInputSelector, email[0])//put your email
-  console.log(`puppeteer: I typed the email in the email input at ${t()}.\n`)
-
-  // Type password
-  const passInputSelector = 'input[type="password"]'
-  await page.waitForSelector(passInputSelector, true, false, timeout)
-  await page.type(passInputSelector, pass[0])
-  console.log(`puppeteer: I typed the password in the password input at ${t()}.\n`)
-
-  // Click on submit
-  const submitButton = 'button[type="submit"]'
-  await page.waitForSelector(submitButton, true, false, timeout)
-  await page.click(submitButton)
-  console.log(`puppeteer: I clicked on the submit button at ${t()}.\n`)
-
-  // Click on the navbar toggle
-  const navbarToggle = '.navbar-toggle'
-  await page.waitForSelector(navbarToggle, true, false, timeout)
-  await page.click(navbarToggle)
-  console.log(`puppeteer: I clicked on the navbar toggle at ${t()}.\n`)
-
-  // Click on My PlateRate Link
-  const myPlateRateLink = 'a[href="/users/profile"]'
-  await page.waitForSelector(myPlateRateLink, true, false, timeout)
-  await page.click(myPlateRateLink)
-  console.log(`puppeteer: I clicked on the My PlateRate link at ${t()}.\n`)
-
-  // Click on Name and Email accordion
-  const nameAndEmail = 'a:nth-child(1)'
-  await page.waitForSelector(nameAndEmail, true, false, timeout)
-  await page.click(nameAndEmail)
-  console.log(`puppeteer: I clicked on the name and email accordion at ${t()}.\n`)
+  // Click on Sensory Experience
+  await click('a:nth-child(4)', 'Sensory Experience accordion')
+  // Set Sweet Slider
+  await type('input#sweet', '0, 10', 'sweet slider')
+  // Set Salty Slider
+  await type('input#salty', '10, 20', 'salty slider')
+  // Set Umami Slider
+  await type('input#savory', '20, 30', 'umami slider')
+  // Set Bitter Slider
+  await type('input#bitter', '30, 40', 'Bitter slider')
+  // Set sour Slider
+  await type('input#sour', '40, 50', 'sour slider')
+  // Set spicy Slider
+  await type('input#spicy', '50, 60', 'spicy slider')
+  // Set healthy Slider
+  await type('input#healthy', '60, 70', 'healthy slider')
+  // Set presentation Slider
+  await type('input#presentation', '70, 80', 'presentation slider')
+  // Set Portion Size Slider
+  await type('input#quantity', '80, 90', 'Portion Size slider')
+  // Set Value for Price Slider
+  await type('input#value_for_price', '90, 100', 'Value for Price slider')
+  
+  
+  // Click on Restaurant Preferences
+  await click('a:nth-child(5)', 'Restaurant Preferences accordion') 
+  // Set Noise level Slider
+  await type('input#noise_level', '0, 10', 'Noise level slider')
+  // Set Service Slider
+  await type('input#service_rating', '10, 20', 'Service slider')
+  // Set Ambiance Slider
+  await type('input#classy_ambience', '20, 30', 'Ambiance slider')
+  // Set Cleanliness Slider
+  await type('input#cleanliness', '30, 40', 'Cleanliness slider')
 
   //
-  // Click on Personal Information 
-  const personalInfo = 'a:nth-child(2)'
-  await page.waitForSelector(personalInfo, true, false, timeout)
-  await page.click(personalInfo)
-  console.log(`puppeteer: I clicked on the personal information accordion at ${t()}.\n`)
-
+  // Click on Past Ratings
+  await click('a:nth-child(6)', 'Past Ratings accordion') 
+  
   //
-  // Click on Dietary Preferences 
-  const dietPref = 'a:nth-child(3)'
-  await page.waitForSelector(dietPref, true, false, timeout)
-  await page.click(dietPref)
-  console.log(`puppeteer: I clicked on the dietary preferences accordion at ${t()}.\n`)
-
-  //
-  // Click on Sensory Experience 
-  const sensoryExp = 'a:nth-child(4)'
-  await page.waitForSelector(sensoryExp, true, false, timeout)
-  await page.click(sensoryExp)
-  console.log(`puppeteer: I clicked on the Sensory Experience accordion at ${t()}.\n`)
-
-  //
-  // Click on Restaurant Preferences 
-  const restPref = 'a:nth-child(5)'
-  await page.waitForSelector(restPref, true, false, timeout)
-  await page.click(restPref)
-  console.log(`puppeteer: I clicked on the Restaurant Preferences accordion at ${t()}.\n`)
-
-  //
-  // Click on Past Ratings 
-  const pastRatings = 'a:nth-child(6)'
-  await page.waitForSelector(pastRatings, true, false, timeout)
-  await page.click(pastRatings)
-  console.log(`puppeteer: I clicked on the Past Ratings accordion at ${t()}.\n`)
-
-  //
-  // Click on Account Settings 
-  const acctSettings = 'a:nth-child(7)'
-  await page.waitForSelector(acctSettings, true, false, timeout)
-  await page.click(acctSettings)
-  console.log(`puppeteer: I clicked on the Account Settings accordion at ${t()}.\n`)
-
+  // Click on Account Settings
+  await click('a:nth-child(7)', 'Account Settings accordion') 
   //
   // Click on Home/Search Link
-  const homeSearchLink = 'a[href="/"]'
-  await page.waitForSelector(homeSearchLink, true, false, timeout)
-  await page.click(homeSearchLink)
-  console.log(`puppeteer: I clicked on the navbar toggle at ${t()}.\n`)
+  await click('a[href="/"]', 'Navbar Toggle')
 
   // Click on Share Link
-  const socialShareLink = 'a[href="/socialshare"]'
-  await page.waitForSelector(socialShareLink, true, false, timeout)
-  await page.click(socialShareLink)
-  console.log(`puppeteer: I clicked on the social share link at ${t()}.\n`)
-
+  await click('a[href="/socialshare"]', 'Social Share link')
+  
   ///
   // Click on Feedback link
-  const feedbackLink = '#feedback'
-  await page.waitForSelector(feedbackLink, true, false, timeout)
-  await page.click(feedbackLink)
-  console.log(`puppeteer: I clicked on the feedback link at ${t()}.\n`)
-
+  await click('#feedback', 'Feedback link')
+  
   ///
   // Click on Home/Search Link
-  const homeSearchLink = 'a[href="/"]'
-  await page.waitForSelector(homeSearchLink, true, false, timeout)
-  await page.click(homeSearchLink)
-  console.log(`puppeteer: I clicked on the navbar toggle at ${t()}.\n`)
-
+  await click('a[href="/"]', 'Home/Search link')
+  
   //default food tab for finding a food
-  const foodInput = '.item-input'
-  await page.waitForSelector(foodInput,true,false,timeout)
-  await page.type(foodInput, 'Pizza')
-  console.log(`puppeteer: I typed 'Pizza' in to the input at ${t()}.\n`)
-  
+  await type('.item-input', 'Pizza', '\'Pizza\'')
   // Type zipcode
-  const locationInput = '#locationinput'
-  await page.waitForSelector(locationInput, true, false, timeout)
-  await page.type(locationInput, `19406`)
-  console.log(`puppeteer: I typed the zip code 19406 into the location input at ${t() }.\n`)
-  
+  await type('#locationinput', '19406', 'zip code \'19406\'')
   // Click on Search food & drink
-  const searchbutton = 'button[id="searchbutton"]'
-  await page.waitForSelector(searchbutton, true, false, timeout)
-  await page.click(searchbutton)
-  const tn11 = tn()
-  console.log(`puppeteer: I clicked on the search button at ${t()}.\n`)
-
+  await click('button[id="searchbutton"]', 'Search Button')
+ 
   ///
   // Click on Home/Search Link
-  const homeSearchLink = 'a[href="/"]'
-  await page.waitForSelector(homeSearchLink, true, false, timeout)
-  await page.click(homeSearchLink)
-  console.log(`puppeteer: I clicked on the navbar toggle at ${t()}.\n`)
+  await click('a[href="/"]', 'Navbar Toggle')
   
-
  /* //Click on Restaurant Tab
   const restaurantTab = '#toRestaurant'
   await page.waitForSelector(restaurantTab, true, false, timeout)
