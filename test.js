@@ -1,3 +1,4 @@
+
 /**
  * Copyright 2017 Google Inc. All rights reserved.
  *
@@ -35,17 +36,19 @@ require('dotenv').config();
   const t = () => ((new Date()).toTimeString()).slice(0,8)
   const tn = () => (new Date()).getTime()
   const tn1 = tn()
-
+_
   const click = async (elem, title) => {
-    await page.waitForSelector(elem, true, false, timeout)
-    await page.click(elem)
-    console.log(`puppeteer: I clicked on the ${title} at ${t()}.\n`)
+      await page.waitForSelector(elem, true, false, timeout)
+      await page.click(elem)
+      console.log(`puppeteer: I clicked on the ${title} at ${t()}.\n`)
   }
+
   const type = async(elem, input, title) => {
     await page.waitForSelector(elem, true, false, timeout)
     await page.type(elem, input, title)
     console.log(`puppeteer: I typed the ${title} in the ${title} input at ${t()}.\n`)
   }
+
   const clickCheckbox = (elem, title) => {
     const checkbox = await page.$(elem)
     await checkbox.click()
@@ -53,6 +56,26 @@ require('dotenv').config();
     console.log(`${title} was ${!checked ? 'NOT' : ''} checked`)
   }
 
+  const findElement = async (elem, title, action, input) => {
+    let package = { elem }
+    if (typeof elem !== 'undefined') {
+      await page.waitForSelector(elem, true, false, timeout)
+      let callBack = action === 'typed' ? type(elem, input, title) : (action === 'clicked' ? click(elem, title) : clickclickCheckbox(elem, title))
+      callBack()
+      let msg = `puppeteer: I ${action} on the ${title}`
+      package.success = true
+      package.msg = msg
+      return package
+    } else {
+      let msg = `puppeteer: Could not find the DOM element for the ${title}`
+      console.log(msg)
+      const fileName = `${title}.png`
+      await page.screenshot({path: fileName, fullPage: true})
+      package.success = false
+      package.msg = msg
+      return package
+    }
+  }
 
   // launch browser, open brower page
   
@@ -70,42 +93,46 @@ require('dotenv').config();
   console.log(`puppeteer: I navigated to ${urls[0]} at ${t()}.\n`)
 
   // Click on login button
-  await click('a[href="/users/login"]', 'Login Button')
+  await findElement('a[href="/users/login"]', 'Login Button', 'clicked')
   // Type email
-  await type('input[type="email"]', email[0], 'email')
+  await type('input[type="email"]', 'email', 'typed', email[0],)
   // Type password
-  await type('input[type="password"]', email[0], 'password')
+  await type('input[type="password"]', 'password', 'typed', pass[0],)
   // Click on submit
-  await click('button[type="submit"]', 'Submit Button')
+  await findElement('button[type="submit"]', 'Submit Button', 'clicked')
   // Click on the navbar toggle
-  await click('.navbar-toggle', 'Navbar Toggle')
+  await findElement('.navbar-toggle', 'Navbar Toggle', 'clicked')
   // Click on My PlateRate Link
-  await click('a[href="/users/profile"]', 'My PlateRate link')
+  await findElement('a[href="/users/profile"]', 'My PlateRate link', 'clicked')
+  // In case of Error pop-up, Click on Cancel button
+
+    let optElemExists = 
+  condClick('button.cancel')
   // Click on Name and Email accordion
-  await click('a:nth-child(1)', 'Name and Email accordion')
+  await findElement('a:nth-child(1)', 'Name and Email accordion', 'clicked')
   // Upload picture
   const uploadInput = page.$('#fileInput')
   await uploadInput.uploadFile('selfie.jpeg')
   // Type First Name
-  await type('input#firstName', 'Bob', 'First Name')
+  await type('input#firstName', 'First Name', 'typed', 'Bob')
   // Type Last Name
-  await type('input#lastName', 'Johnson', 'Last Name')
+  await type('input#lastName', 'Last Name', 'typed', 'Johnson',)
   // Type Email
-  await type('input#email', 'BobJohnson@gmail.com', 'Email')
+  await type('input#email', 'Email', 'typed', 'BobJohnson@gmail.com')
   // Click on Personal Information
-  await click('a:nth-child(2)', 'Personal Information accordion')
+  await findElement('a:nth-child(2)', 'Personal Information, 'clicked' accordion')
   // Type Street
-  await type('input#street', '500 West 42nd Street', 'Street')
+  await type('input#street', 'Street', 'typed', '500 West 42nd Street')
   // Type City
-  await type('input#city', 'New York', 'City')
+  await type('input#city', 'City', 'typed', 'New York')
   // Type Zip code
-  await type('input#postalCode', '10036', 'Zip Code')
+  await type('input#postalCode', 'Zip Code', 'typed', '10036')
   // Type Country
-  await type('input#country', 'USA', 'Country')
+  await type('input#country', 'Country', 'typed', 'USA')
   // Type Phone
-  await type('input#phone', '555-5555', 'Phone')
+  await type('input#phone', 'Phone', 'typed', '555-5555')
   // Type Birthday
-  await type('input#birthday', '05/05/2000', 'Birthday')
+  await type('input#birthday', 'Birthday', 'typed', '05/05/2000')
   // Type Gender
   await page.waitForSelector('select#gender', true, false, timeout)
   await page.click('select#gender', 'Other')
@@ -118,7 +145,7 @@ require('dotenv').config();
   clickCheckbox('input#never', 'Please don\'t contact me')
 
   // Click on Dietary Preferences
-  await click('a:nth-child(3)', 'Dietary Preferences accordion')
+  await findElement('a:nth-child(3)', 'Dietary Preferences, 'clicked' accordion')
   // Check Dietary Preferences
   for (let i = 0; i<47; i++) {
     const selector = `input:nth-child(${i}).diet-options`
@@ -130,72 +157,72 @@ require('dotenv').config();
   }
 
   // Click on Sensory Experience
-  await click('a:nth-child(4)', 'Sensory Experience accordion')
+  await findElement('a:nth-child(4)', 'Sensory Experience accordion', 'clicked')
   // Set Sweet Slider
-  await type('input#sweet', '0, 10', 'sweet slider')
+  await type('input#sweet', 'sweet slider', 'typed', '0, 10')
   // Set Salty Slider
-  await type('input#salty', '10, 20', 'salty slider')
+  await type('input#salty', 'salty slider', 'typed', '10, 20')
   // Set Umami Slider
-  await type('input#savory', '20, 30', 'umami slider')
+  await type('input#savory', 'umami slider', 'typed', '20, 30')
   // Set Bitter Slider
-  await type('input#bitter', '30, 40', 'Bitter slider')
+  await type('input#bitter', 'Bitter slider', 'typed', '30, 40')
   // Set sour Slider
-  await type('input#sour', '40, 50', 'sour slider')
+  await type('input#sour', 'sour slider', 'typed', '40, 50')
   // Set spicy Slider
-  await type('input#spicy', '50, 60', 'spicy slider')
+  await type('input#spicy', 'spicy slider', 'typed', '50, 60')
   // Set healthy Slider
-  await type('input#healthy', '60, 70', 'healthy slider')
+  await type('input#healthy', 'healthy slider', 'typed', '60, 70')
   // Set presentation Slider
-  await type('input#presentation', '70, 80', 'presentation slider')
+  await type('input#presentation', 'presentation slider', 'typed', '70, 80')
   // Set Portion Size Slider
-  await type('input#quantity', '80, 90', 'Portion Size slider')
+  await type('input#quantity', 'Portion Size slider', 'typed', '80, 90')
   // Set Value for Price Slider
-  await type('input#value_for_price', '90, 100', 'Value for Price slider')
+  await type('input#value_for_price', 'Value for Price slider', 'typed', '90, 100')
   
   
   // Click on Restaurant Preferences
-  await click('a:nth-child(5)', 'Restaurant Preferences accordion') 
+  await findElement('a:nth-child(5)', 'Restaurant Preferences, 'clicked' accordion') 
   // Set Noise level Slider
-  await type('input#noise_level', '0, 10', 'Noise level slider')
+  await type('input#noise_level', 'Noise level slider', 'typed', '0, 10')
   // Set Service Slider
-  await type('input#service_rating', '10, 20', 'Service slider')
+  await type('input#service_rating', 'Service slider', 'typed', '10, 20')
   // Set Ambiance Slider
-  await type('input#classy_ambience', '20, 30', 'Ambiance slider')
-  // Set Cleanliness Slider
-  await type('input#cleanliness', '30, 40', 'Cleanliness slider')
+  await type('input#classy_ambience', 'Ambiance slider', 'typed', '20, 30')
+  // Set Ambiance Slider
+  await type('input#cleanliness', 'Ambiance slider', 'typed', '30, 40')
 
   //
   // Click on Past Ratings
-  await click('a:nth-child(6)', 'Past Ratings accordion') 
+  await findElement('a:nth-child(6)', 'Past Ratings accordion'), 'clicked' 
   
   //
   // Click on Account Settings
-  await click('a:nth-child(7)', 'Account Settings accordion') 
+  await findElement('a:nth-child(7)', 'Account Settings accordion'), 'clicked' 
   //
   // Click on Home/Search Link
-  await click('a[href="/"]', 'Navbar Toggle')
+  await findElement('a[href="/"]', 'Navbar Toggle', 'clicked')
 
   // Click on Share Link
-  await click('a[href="/socialshare"]', 'Social Share link')
+  await findElement('a[href="/socialshare"]', 'Social Share link', 'clicked')
   
   ///
   // Click on Feedback link
-  await click('#feedback', 'Feedback link')
+  await findElement('#feedback', 'Feedback link', 'clicked')
   
   ///
   // Click on Home/Search Link
-  await click('a[href="/"]', 'Home/Search link')
+  await findElement('a[href="/"]', 'Home/Search link', 'clicked')
   
   //default food tab for finding a food
-  await type('.item-input', 'Pizza', '\'Pizza\'')
+  await type('.item-input', 'Pizza', '\'Pizza\'', 'typed',)
   // Type zipcode
-  await type('#locationinput', '19406', 'zip code \'19406\'')
+  await type('#locationinput', '19406', 'zip code \'19406\'', 'typed',)
   // Click on Search food & drink
-  await click('button[id="searchbutton"]', 'Search Button')
+  await findElement('button[id="searchbutton"]', 'Search Button', 'clicked')
  
   ///
   // Click on Home/Search Link
-  await click('a[href="/"]', 'Navbar Toggle')
+  await findElement('a[href="/"]', 'Navbar Toggle', 'clicked')
   
  /* //Click on Restaurant Tab
   const restaurantTab = '#toRestaurant'
