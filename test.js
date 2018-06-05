@@ -324,10 +324,9 @@ _
   takeApic(title, true)
   
   // Click on 'View This restaurant'
-  const viewVenueBtn = '.view-venue-btn'
-  await page.waitForSelector(viewVenueBtn, true, false, timeout)
-  await page.click(viewVenueBtn)
-  console.log(`puppeteer: I clicked on the 'VIEW THIS RESTAURANT' button at ${t()}.\n`)
+  await findElement('.view-venue-btn', 'view this restaurant button', 'clicked')
+  // 
+  await findElement('#fileInput', 'restaurant upload', 'uploaded', 'restaurant.jpg')
    
 
   // Upload Restaurant picture
