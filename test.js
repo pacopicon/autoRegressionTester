@@ -28,9 +28,15 @@ require('dotenv').config();
 (async() => {
 
   // Public Vars
-  const email = [process.env.pacoEmail, process.env.garretEmail, process.env.sujenEmail]
-  const pass = [process.env.pacoPass, process.env.garretPass, process.env.sujenPass]
+  const email = ['plateratetester@gmail.com', '	plateratetesteralt@gmail.com'] // passwords for these accounts = ['This is not a password', 'This is a password']
+  const pass = ['Bloop!', 'Wham!']
   const folderName = 'autoRegressionTester'
+  const street = ['1 5th Avenue', '1 Broadway']
+  const city = ['New York', 'New York']
+  const zip = ['10012', '10004']
+  const country = ['USA', 'USA']
+  const phone = ['555-5555', '444-4444']
+  const birthDay = ['01/01/1970', '03/12/2015']
 
   // Public functions
   const t = () => ((new Date()).toTimeString()).slice(0,8)
@@ -40,41 +46,64 @@ _
   const click = async (elem, title) => {
       await page.waitForSelector(elem, true, false, timeout)
       await page.click(elem)
-      console.log(`puppeteer: I clicked on the ${title} at ${t()}.\n`)
+      return `${title} was clicked at ${t()}.\n`
   }
 
   const type = async(elem, input, title) => {
     await page.waitForSelector(elem, true, false, timeout)
     await page.type(elem, input, title)
-    console.log(`puppeteer: I typed the ${title} in the ${title} input at ${t()}.\n`)
+    return `${title} was typed in the ${title} input at ${t()}.\n`
   }
 
   const clickCheckbox = (elem, title) => {
     const checkbox = await page.$(elem)
     await checkbox.click()
     const checked = await page.evaluate(checkbox => checkbox.checked, checkbox)
-    console.log(`${title} was ${!checked ? 'NOT' : ''} checked`)
+    return `${title} was rendered ${!checked ? 'UN-' : ''}checked`
+  }
+
+  const upload = (elem, title, pic) => {
+    const uploadInput = page.$(elem)
+    await uploadInput.uploadFile(pic)
+    return `${pic} was uploaded to ${title}`
+  }
+
+  const takeApic = (title, isFullPage) => {
+    const fn = `${title}.png`
+    await page.screenshot( {path: fn, fullPage: isFullPage} )
+    console.log(`A picture of ${title} was taken`)
   }
 
   const findElement = async (elem, title, action, input) => {
-    let package = { elem }
+    let package = { elem }, callback, msg
     if (typeof elem !== 'undefined') {
       await page.waitForSelector(elem, true, false, timeout)
-      let callBack = action === 'typed' ? type(elem, input, title) : (action === 'clicked' ? click(elem, title) : clickclickCheckbox(elem, title))
-      callBack()
-      let msg = `puppeteer: I ${action} on the ${title}`
+
+      if (action === 'typed') {
+        msg = type(elem, input, title)
+      } else if (action === 'clicked') {
+        msg = click(elem, title)
+      } else if (action === 'checked') {
+        msg = clickCheckbox(elem, title)
+      } else if (action === 'uploaded') {
+        msg = upload(elem, title, input)
+      }
+      console.log(msg)
       package.success = true
       package.msg = msg
       return package
     } else {
-      let msg = `puppeteer: Could not find the DOM element for the ${title}`
+      let msg = `puppeteer: Could not find: ${elem} -- the DOM element for the ${title}`
       console.log(msg)
-      const fileName = `${title}.png`
-      await page.screenshot({path: fileName, fullPage: true})
+      takeApic(title, true)
       package.success = false
       package.msg = msg
       return package
     }
+  }
+
+  const clickErrorPopup = () => {
+    await findElement('button.confirm', 'Error Pop-up confirm button', 'clicked')
   }
 
   // launch browser, open brower page
@@ -95,57 +124,56 @@ _
   // Click on login button
   await findElement('a[href="/users/login"]', 'Login Button', 'clicked')
   // Type email
-  await type('input[type="email"]', 'email', 'typed', email[0],)
+  await findElement('input[type="email"]', 'email', 'typed', email[0],)
   // Type password
-  await type('input[type="password"]', 'password', 'typed', pass[0],)
+  await findElement('input[type="password"]', 'password', 'typed', pass[0],)
   // Click on submit
   await findElement('button[type="submit"]', 'Submit Button', 'clicked')
   // Click on the navbar toggle
   await findElement('.navbar-toggle', 'Navbar Toggle', 'clicked')
   // Click on My PlateRate Link
   await findElement('a[href="/users/profile"]', 'My PlateRate link', 'clicked')
-  // In case of Error pop-up, Click on Cancel button
 
-    let optElemExists = 
-  condClick('button.cancel')
+  // In case of Error pop-up, Click on Cancel button
+  await clickErrorPopup()
+
   // Click on Name and Email accordion
   await findElement('a:nth-child(1)', 'Name and Email accordion', 'clicked')
   // Upload picture
-  const uploadInput = page.$('#fileInput')
-  await uploadInput.uploadFile('selfie.jpeg')
+  await findElement('#fileInput', 'avatar upload', 'uploaded', 'selfie.jpeg')
   // Type First Name
-  await type('input#firstName', 'First Name', 'typed', 'Bob')
+  await findElement('input#firstName', 'First Name', 'typed', 'Deep')
   // Type Last Name
-  await type('input#lastName', 'Last Name', 'typed', 'Johnson',)
+  await findElement('input#lastName', 'Last Name', 'typed', 'Mind',)
   // Type Email
-  await type('input#email', 'Email', 'typed', 'BobJohnson@gmail.com')
+  await findElement('input#email', 'Email', 'typed', email[1])
   // Click on Personal Information
-  await findElement('a:nth-child(2)', 'Personal Information, 'clicked' accordion')
+  await findElement('a:nth-child(2)', 'Personal Information accordion', 'clicked')
   // Type Street
-  await type('input#street', 'Street', 'typed', '500 West 42nd Street')
+  await findElement('input#street', 'Street', 'typed', street[0])
   // Type City
-  await type('input#city', 'City', 'typed', 'New York')
+  await findElement('input#city', 'City', 'typed', city[0])
   // Type Zip code
-  await type('input#postalCode', 'Zip Code', 'typed', '10036')
+  await findElement('input#postalCode', 'Zip Code', 'typed', zip[0])
   // Type Country
-  await type('input#country', 'Country', 'typed', 'USA')
+  await findElement('input#country', 'Country', 'typed', country[0])
   // Type Phone
-  await type('input#phone', 'Phone', 'typed', '555-5555')
+  await findElement('input#phone', 'Phone', 'typed', phone[0])
   // Type Birthday
-  await type('input#birthday', 'Birthday', 'typed', '05/05/2000')
+  await findElement('input#birthday', 'Birthday', 'typed', birthDay[0])
   // Type Gender
   await page.waitForSelector('select#gender', true, false, timeout)
   await page.click('select#gender', 'Other')
   console.log(`puppeteer: I selected 'Other' as my gender at ${t()}.\n`)
   // Check Contact Preferences: By Email
-  clickCheckbox('input#byEmail', 'By Email')
+  await findElement('input#byEmail', 'By Email', 'checked')
   // Check Contact Preferences: By Sms
-  clickCheckbox('input#bySms', 'By Text Message')
+  await findElement('input#bySms', 'By Text Message', 'checked')
   // Check Contact Preferences: By Sms
-  clickCheckbox('input#never', 'Please don\'t contact me')
+  await findElement('input#never', 'Please don\'t contact me', 'checked')
 
   // Click on Dietary Preferences
-  await findElement('a:nth-child(3)', 'Dietary Preferences, 'clicked' accordion')
+  await findElement('a:nth-child(3)', 'Dietary Preferences accordion', 'clicked')
   // Check Dietary Preferences
   for (let i = 0; i<47; i++) {
     const selector = `input:nth-child(${i}).diet-options`
@@ -159,102 +187,147 @@ _
   // Click on Sensory Experience
   await findElement('a:nth-child(4)', 'Sensory Experience accordion', 'clicked')
   // Set Sweet Slider
-  await type('input#sweet', 'sweet slider', 'typed', '0, 10')
+  await findElement('input#sweet', 'sweet slider', 'typed', '0, 10')
   // Set Salty Slider
-  await type('input#salty', 'salty slider', 'typed', '10, 20')
+  await findElement('input#salty', 'salty slider', 'typed', '10, 20')
   // Set Umami Slider
-  await type('input#savory', 'umami slider', 'typed', '20, 30')
+  await findElement('input#savory', 'umami slider', 'typed', '20, 30')
   // Set Bitter Slider
-  await type('input#bitter', 'Bitter slider', 'typed', '30, 40')
+  await findElement('input#bitter', 'Bitter slider', 'typed', '30, 40')
   // Set sour Slider
-  await type('input#sour', 'sour slider', 'typed', '40, 50')
+  await findElement('input#sour', 'sour slider', 'typed', '40, 50')
   // Set spicy Slider
-  await type('input#spicy', 'spicy slider', 'typed', '50, 60')
+  await findElement('input#spicy', 'spicy slider', 'typed', '50, 60')
   // Set healthy Slider
-  await type('input#healthy', 'healthy slider', 'typed', '60, 70')
+  await findElement('input#healthy', 'healthy slider', 'typed', '60, 70')
   // Set presentation Slider
-  await type('input#presentation', 'presentation slider', 'typed', '70, 80')
+  await findElement('input#presentation', 'presentation slider', 'typed', '70, 80')
   // Set Portion Size Slider
-  await type('input#quantity', 'Portion Size slider', 'typed', '80, 90')
+  await findElement('input#quantity', 'Portion Size slider', 'typed', '80, 90')
   // Set Value for Price Slider
-  await type('input#value_for_price', 'Value for Price slider', 'typed', '90, 100')
-  
+  await findElement('input#value_for_price', 'Value for Price slider', 'typed', '90, 100')
   
   // Click on Restaurant Preferences
-  await findElement('a:nth-child(5)', 'Restaurant Preferences, 'clicked' accordion') 
+  await findElement('a:nth-child(5)', 'Restaurant Preferences accordion', 'clicked') 
   // Set Noise level Slider
-  await type('input#noise_level', 'Noise level slider', 'typed', '0, 10')
+  await findElement('input#noise_level', 'Noise level slider', 'typed', '0, 10')
   // Set Service Slider
-  await type('input#service_rating', 'Service slider', 'typed', '10, 20')
+  await findElement('input#service_rating', 'Service slider', 'typed', '10, 20')
   // Set Ambiance Slider
-  await type('input#classy_ambience', 'Ambiance slider', 'typed', '20, 30')
+  await findElement('input#classy_ambience', 'Ambiance slider', 'typed', '20, 30')
   // Set Ambiance Slider
-  await type('input#cleanliness', 'Ambiance slider', 'typed', '30, 40')
+  await findElement('input#cleanliness', 'Ambiance slider', 'typed', '30, 40')
 
-  //
+
   // Click on Past Ratings
-  await findElement('a:nth-child(6)', 'Past Ratings accordion'), 'clicked' 
-  
-  //
+  await findElement('a:nth-child(6)', 'Past Ratings accordion', 'clicked')
+  // Take picture of past ratings page
+  await takeApic('past_ratings', true)
+
+
   // Click on Account Settings
-  await findElement('a:nth-child(7)', 'Account Settings accordion'), 'clicked' 
-  //
+  await findElement('a:nth-child(7)', 'Account Settings accordion', 'clicked')
+  // Click on Password Change
+  await findElement('a[href="/users/password/change"]', 'Password change button', 'clicked') 
+  // Type current Password
+  await findElement('input[placeholder="Current Password"]', 'Current Password input', 'typed', pass[0])
+  // Type New Password
+  await findElement('input[placeholder="New Password"]', 'New Password input', 'typed', pass[1])
+  // Type Confirm New Password
+  await findElement('input[placeholder="Confirm New Password"]', 'Confirm New Password input', 'typed', pass[1])
+
+  // In case of Error pop-up, Click on Cancel button
+  await clickErrorPopup()
+
+  // Click on Account Settings a 2nd time
+  await findElement('a:nth-child(7)', 'Account Settings accordion', 'clicked')
+  // Click on Password Change a 2nd time
+  await findElement('a[href="/users/password/change"]', 'Password change button', 'clicked') 
+  // Type current Password a 2nd time
+  await findElement('input[placeholder="Current Password"]', 'Current Password input', 'typed', pass[1])
+  // Type New Password a 2nd time
+  await findElement('input[placeholder="New Password"]', 'New Password input', 'typed', pass[0])
+  // Type Confirm New Password a 2nd time
+  await findElement('input[placeholder="Confirm New Password"]', 'Confirm New Password input', 'typed', pass[0])
+
+  // In case of Error pop-up, Click on Cancel button
+  await clickErrorPopup()
+
+
+  // Click on the Add Referrer Accordion
+  await findElement('a:nth-child(8)', 'Add Referrer Accordion', 'clicked')
+  // Input referrer e-mail
+  await findElement('input#referrer-email', 'Email', 'typed', email[1])
+  // Click on Send Invite Button
+  await findElement('button.send-referral', 'Send Invite Button', 'clicked')
+
+  
   // Click on Home/Search Link
   await findElement('a[href="/"]', 'Navbar Toggle', 'clicked')
 
   // Click on Share Link
   await findElement('a[href="/socialshare"]', 'Social Share link', 'clicked')
+  // Click on Twitter social share button
+  await findElement('iframe.twitter-share-button', 'Twitter social Share button', 'clicked')
+  await takeApic('twitterPopup', true)
+  // Click on Facebook social share button
+  await findElement('iframe[title="fb:share_button Facebook Social Plugin"]', 'Facebook social Share button', 'clicked')
+  await takeApic('facebookPopup', true)
+  // Click on LinkedIn social share button
+  await findElement('span#li_ui_li_gen_1527968981535_0', 'LinkedIn social Share button', 'clicked')
+  await takeApic('linkedInPopup', true)
+  // Click on Google social share button
+  await findElement('iframe[title="G+"]', 'Google social Share button', 'clicked')
+  await takeApic('googlePopup', true)
+  // Type Social Share E-mail
+  await findElement('input#referrer-email', 'Email', 'typed', email[1])
+  // Type Social Share E-mail text
+  await findElement('textarea.form-control', 'textarea', 'typed', 'Hello, this is a test')
+  // Click on Send Invite button
+  await findElement('button#sent_invite', 'social share e-mail send button', 'clicked')
   
-  ///
+  
   // Click on Feedback link
   await findElement('#feedback', 'Feedback link', 'clicked')
+  // Enter subject on subject line
+  await findElement('input#feedback-subject', 'subject line', 'typed', 'testing')
+  // Type Social Share E-mail text
+  await findElement('textarea.form-control', 'textarea', 'typed', 'Hello, this is the Auto-regression tester.  I\'m testing the feedback e-mail functionality.')
+  // Click on Send Feedback
+  await findElement('textarea.form-control', 'textarea', 'typed', 'Hello, this is the Auto-regression tester.  I\'m testing the feedback e-mail functionality.')
+  await findElement('button[type="submit"]', 'Feedback send button', 'clicked')
   
-  ///
+
   // Click on Home/Search Link
   await findElement('a[href="/"]', 'Home/Search link', 'clicked')
-  
   //default food tab for finding a food
-  await type('.item-input', 'Pizza', '\'Pizza\'', 'typed',)
+  await findElement('.item-input', '\'Pizza\'', 'typed', 'Pizza')
   // Type zipcode
-  await type('#locationinput', '19406', 'zip code \'19406\'', 'typed',)
+  await findElement('#locationinput', 'zip code \'11385\'', 'typed', '11385')
   // Click on Search food & drink
   await findElement('button[id="searchbutton"]', 'Search Button', 'clicked')
+  // Take a picture of the results
+  takeApic(title, true)
  
-  ///
   // Click on Home/Search Link
-  await findElement('a[href="/"]', 'Navbar Toggle', 'clicked')
+  await findElement('#toRestaurant', 'Restaurant tab', 'clicked')
   
- /* //Click on Restaurant Tab
-  const restaurantTab = '#toRestaurant'
-  await page.waitForSelector(restaurantTab, true, false, timeout)
-  await page.click(restaurantTab)
-  console.log(`puppeteer: I clicked on the restaurant tab at ${t()}.\n`)
-
-   //Type name of restaurant
-  const restaurantInput = '.restaurant-input'
-  await page.waitForSelector(restaurantInput, true, false, timeout)
-  await page.type(restaurantInput, `Hetman's`)
-  console.log(`puppeteer: I typed 'Hetman's' into the input at ${t()}.\n`)
-
+  //Click on Restaurant Tab
+  await findElement('a[href="/"]', 'Navbar Toggle', 'clicked')
+  //Type name of restaurant
+  await findElement('.restaurant-input', 'Restaurant input', 'typed', 'Hetman\'s')
   // Type zipcode
-  const locationInput = '#locationinput'
-  await page.waitForSelector(locationInput, true, false, timeout)
-  await page.type(locationInput, `11385`)
-  console.log(`puppeteer: I typed the zip code 11835 into the location input at ${t()}.\n`)
-
+  await findElement('#locationinput', 'zip code \'11385\'', 'typed', '11385')
   // Click on Search
-  const searchbutton = '#searchbutton'
-  await page.waitForSelector(searchbutton, true, false, timeout)
-  await page.click(searchbutton)
-  console.log(`puppeteer: I clicked on the search button at ${t()}.\n`)
- 
-
+  await findElement('button[id="searchbutton"]', 'Search Button', 'clicked')
+  // Take a picture of the results
+  takeApic(title, true)
+  
   // Click on 'View This restaurant'
   const viewVenueBtn = '.view-venue-btn'
   await page.waitForSelector(viewVenueBtn, true, false, timeout)
   await page.click(viewVenueBtn)
   console.log(`puppeteer: I clicked on the 'VIEW THIS RESTAURANT' button at ${t()}.\n`)
-  */
    
 
   // Upload Restaurant picture
