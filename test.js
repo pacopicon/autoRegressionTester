@@ -321,20 +321,18 @@ _
   // Click on Search
   await findElement('button[id="searchbutton"]', 'Search Button', 'clicked')
   // Take a picture of the results
-  takeApic(title, true)
+  takeApic('restaurant_search_result', true)
   
   // Click on 'View This restaurant'
   await findElement('.view-venue-btn', 'view this restaurant button', 'clicked')
-  // 
+  // Upload Restaurant picture 
   await findElement('#fileInput', 'restaurant upload', 'uploaded', 'restaurant.jpg')
-   
 
-  // Upload Restaurant picture
-  /*const submitAphotoButton = await page.$('input[type=file]')
-  await submitAphotoButton.uploadFile('./pic.jpg')
-  const tn13 = tn()
-  console.log(`puppeteer: I uploaded a restaurant picture at ${t()}.\n`)*/
-
+  
+  // Take picture of uploaded restaurant
+  takeApic('restaurant_search_result', true)
+  //
+  
   // Click on logout link
   const logoutLink = '#logout'
   await page.waitForSelector(logoutLink, true, false, timeout)
