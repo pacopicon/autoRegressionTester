@@ -38,143 +38,143 @@ require('dotenv').config();
   const phone = ['555-5555', '444-4444']
   const birthDay = ['01/01/1970', '03/12/2015']
 
+  let isBrowserClosed = false
+
   // Public functions
   const t = () => ((new Date()).toTimeString()).slice(0,8)
   const tn = () => (new Date()).getTime()
   const tn1 = tn()
 
-  const click = async (numStr, elem, title) => {
-    await page.waitForSelector(elem, true, false, timeout)
-    await page.click(elem)
-    console.log(`fn() no. ${numStr}: ${title} was clicked at ${t()}.\n`)
+  let tally = 1
+
+  const fnTally = () => (tally++)
+  const errMsg = (action, title, err) => {
+    let msg = `fn() no. ${fnTally()} - time: ${t()}. DID NOT ${action} on ${title}.  ${err}. \n`
+
+    return msg
   }
 
-  const type = async(numStr, elem, input, title) => {
-    await page.waitForSelector(elem, true, false, timeout)
-    await page.type(elem, input, title)
-    console.log(`fn() no. ${numStr}: ${title} was typed in the ${title} input at ${t()}.\n`)
-  }
+  const findElement = async(elem, title, action, input, isFullPage) => {
+    let msg, isError = false
 
-  const clickCheckbox = async(numStr, elem, title) => {
-    const checkbox = await page.$(elem)
-    await checkbox.click()
-    const checked = await page.evaluate(checkbox => checkbox.checked, checkbox)
-    console.log(`fn() no. ${numStr}: ${title} was rendered ${!checked ? 'UN-' : ''}checked`)
-  }
-
-  const upload = async(numStr, elem, title, pic) => {
-    return
-    console.log('elem = ', elem)
-    console.log('pic = ', pic)
-    // const uploadInput = await page.$(elem)
-    console.log('uploadInput = ', uploadInput)
-    await uploadInput.uploadFile(pic)
-     console.log(`fn() no. ${numStr}: ${pic} was uploaded to ${title}`) 
-  }
-
-  const takeApic = async(numStr, title, isFullPage) => {
-    const fn = `${title}.png`
-    await page.screenshot( {path: fn, fullPage: isFullPage} )
-    console.log(`fn() no. ${numStr}: A picture of ${title} was taken`)
-  }
-
-  const findElement = async(numStr, elem, title, action, input) => {
-    // numStr is a string number that uniquely identifies all findElement functions when they are called.  This is to help devs localize the last successful findelement function, so that they can immediately jump to the next "unsuccessful" findelement function and debug quickly.
-    if (typeof elem !== 'undefined') {
-
-      if (action === 'typed') {
-        await type(numStr, elem, input, title)
-      } else if (action === 'clicked') {
-        await click(numStr, elem, title)
-      } else if (action === 'checked') {
-        await clickCheckbox(numStr, elem, title)
-      } else if (action === 'uploaded') {
-        await upload(numStr, elem, title, input)
+    if (!isBrowserClosed) {
+      try {
+        if (action === 'check') {
+          const checkbox = await page.$(elem)
+        } else {
+          await page.waitForSelector(elem, true, false, timeout)
+        }
+        try {
+          if (action === 'type') {
+            await page.type(elem, input, title)
+          } else if (action === 'click') {
+            await page.click(elem)
+          } else if (action === 'check') {
+            await checkbox.click()
+            const checked = await page.evaluate(checkbox => checkbox.checked, checkbox)
+          } else if (action === 'upload') {
+            await page.upload(elem)
+          } else if (action === 'photograph') {
+            let path = `${title}.png`
+            await page.screenshot({ path, fullPage: isFullPage })
+          } 
+          msg = `fn() no. ${fnTally()} - time: ${t()}. '${title}' (${elem}) was ${action}${action === 'type' ? 'd' : 'ed'}.\n`
+        } catch(err) {
+          msg = errMsg(action, title, err)
+          isError = true
+        }
+  
+      } catch(err) {
+        msg = errMsg(action, title, err)
+        isError = true
+      }
+  
+      console.log(msg)
+      if (isError) {
+        findElement('body', title, 'photograph', 'dummyStr', true).then( () => {
+          browser.close()
+          isBrowserClosed = true
+        })
+        
       }
     } else {
-      let msg = `puppeteer: Could not find: ${elem} -- the DOM element for the ${title}`
-      console.log(msg)
-      await takeApic(title, true)
+      console.log(`${errMsg(action, title, err)} The Browser is now closed.\n`)
     }
-  }
-
-  const clickErrorPopup = async() => {
-    await findElement('button.confirm', 'Error Pop-up confirm button', 'clicked')
   }
 
   // launch browser, open brower page
 
-  console.log(`puppeteer: Hi, I'm the puppeteer.  I will now test your website.  The time is ${t()}\n`)
   const browser = await puppeteer.launch()
-  console.log(`puppeteer: I launched the Chromium browser at ${t()}.\n`)
+  console.log(`fn() no. ${fnTally()} - time: ${t()}. Launched the Chromium Browser.\n`)
   const page = await browser.newPage()
-  console.log(`puppeteer: I opened a Chromium browser tab at ${t()}.\n`)
+  console.log(`fn() no. ${fnTally()} - time: ${t()}. Opened a Chromium Browser page.\n`)
   const urls = ['https://staging.platerate.guru/', 'http://localhost:3003/']
 
   // Navigate to URL
   const timeout = 1000 * 60 * 5
   await page.goto(urls[0], timeout)
-  console.log(`puppeteer: I navigated to ${urls[0]} at ${t()}.\n`)
+  console.log(`fn() no. ${fnTally()} - time: ${t()}. Navigated to ${urls[0]}.\n`)
 
   // Click on login button
-  await findElement('a[href="/users/login"]', 'Login Button', 'clicked')
+  await findElement('a[href="/users/login"]', 'Login Button', 'click')
 
   // Type email
-  await findElement('input[type="email"]', 'email', 'typed', email[0],)
+  await findElement('input[type="email"]', 'email', 'type', email[0],)
 
   // Type password
-  await findElement('input[type="password"]', 'password', 'typed', pass[0],)
+  await findElement('input[type="password"]', 'password', 'type', pass[0],)
 
   // Click on submit
-  await findElement('button[type="submit"]', 'Submit Button', 'clicked')
+  await findElement('button[type="submit"]', 'Submit Button', 'click')
 
-  // Click on the navbar toggle
-  await findElement('.navbar-toggle', 'Navbar Toggle', 'clicked')
+  // // Click on the navbar toggle
+  await findElement('button.navbar-toggle', 'Navbar Toggle', 'click')
 
   // Click on My PlateRate Link
   await findElement('a[href="/users/profile"]', 'My PlateRate link', 
-  'clicked')
+  'click')
 
   // In case of Error pop-up, Click on Cancel button
-  await clickErrorPopup()
+  await findElement('button.confirm', 'Error Pop-up confirm button', 'click')
+  await findElement('button.confirm', 'Error Pop-up confirm button', 'click')
 
   // Click on Name and Email accordion
-  await findElement('a:nth-child(1)', 'Name and Email accordion', 'clicked')
+  await findElement('a:nth-child(1)', 'Name and Email accordion', 'click')
   // Upload picture
-  await findElement('#fileInput', 'avatar upload', 'uploaded', 'selfie.jpeg')
+  await findElement('#fileInput', 'avatar upload', 'upload', 'selfie.jpeg')
   // Type First Name
-  await findElement('input#firstName', 'First Name', 'typed', 'Deep')
+  await findElement('input#firstName', 'First Name', 'type', 'Deep')
   // Type Last Name
-  await findElement('input#lastName', 'Last Name', 'typed', 'Mind',)
+  await findElement('input#lastName', 'Last Name', 'type', 'Mind',)
   // Type Email
-  await findElement('input#email', 'Email', 'typed', email[1])
+  await findElement('input#email', 'Email', 'type', email[1])
   // Click on Personal Information
-  await findElement('a:nth-child(2)', 'Personal Information accordion', 'clicked')
+  await findElement('a:nth-child(2)', 'Personal Information accordion', 'click')
   // Type Street
-  await findElement('input#street', 'Street', 'typed', street[0])
+  await findElement('input#street', 'Street', 'type', street[0])
   // Type City
-  await findElement('input#city', 'City', 'typed', city[0])
+  await findElement('input#city', 'City', 'type', city[0])
   // Type Zip code
-  await findElement('input#postalCode', 'Zip Code', 'typed', zip[0])
+  await findElement('input#postalCode', 'Zip Code', 'type', zip[0])
   // Type Country
-  await findElement('input#country', 'Country', 'typed', country[0])
+  await findElement('input#country', 'Country', 'type', country[0])
   // Type Phone
-  await findElement('input#phone', 'Phone', 'typed', phone[0])
+  await findElement('input#phone', 'Phone', 'type', phone[0])
   // Type Birthday
-  await findElement('input#birthday', 'Birthday', 'typed', birthDay[0])
+  await findElement('input#birthday', 'Birthday', 'type', birthDay[0])
   // Type Gender
   await page.waitForSelector('select#gender', true, false, timeout)
   await page.click('select#gender', 'Other')
   console.log(`puppeteer: I selected 'Other' as my gender at ${t()}.\n`)
   // Check Contact Preferences: By Email
-  await findElement('input#byEmail', 'By Email', 'checked')
+  await findElement('input#byEmail', 'By Email', 'check')
   // Check Contact Preferences: By Sms
-  await findElement('input#bySms', 'By Text Message', 'checked')
+  await findElement('input#bySms', 'By Text Message', 'check')
   // Check Contact Preferences: By Sms
-  await findElement('input#never', 'Please don\'t contact me', 'checked')
+  await findElement('input#never', 'Please don\'t contact me', 'check')
 
   // Click on Dietary Preferences
-  await findElement('a:nth-child(3)', 'Dietary Preferences accordion', 'clicked')
+  await findElement('a:nth-child(3)', 'Dietary Preferences accordion', 'click')
   // Check Dietary Preferences
   for (let i = 0; i<47; i++) {
     const selector = `input:nth-child(${i}).diet-options`
@@ -186,148 +186,147 @@ require('dotenv').config();
   }
 
   // Click on Sensory Experience
-  await findElement('a:nth-child(4)', 'Sensory Experience accordion', 'clicked')
+  await findElement('a:nth-child(4)', 'Sensory Experience accordion', 'click')
   // Set Sweet Slider
-  await findElement('input#sweet', 'sweet slider', 'typed', '0, 10')
+  await findElement('input#sweet', 'sweet slider', 'type', '0, 10')
   // Set Salty Slider
-  await findElement('input#salty', 'salty slider', 'typed', '10, 20')
+  await findElement('input#salty', 'salty slider', 'type', '10, 20')
   // Set Umami Slider
-  await findElement('input#savory', 'umami slider', 'typed', '20, 30')
+  await findElement('input#savory', 'umami slider', 'type', '20, 30')
   // Set Bitter Slider
-  await findElement('input#bitter', 'Bitter slider', 'typed', '30, 40')
+  await findElement('input#bitter', 'Bitter slider', 'type', '30, 40')
   // Set sour Slider
-  await findElement('input#sour', 'sour slider', 'typed', '40, 50')
+  await findElement('input#sour', 'sour slider', 'type', '40, 50')
   // Set spicy Slider
-  await findElement('input#spicy', 'spicy slider', 'typed', '50, 60')
+  await findElement('input#spicy', 'spicy slider', 'type', '50, 60')
   // Set healthy Slider
-  await findElement('input#healthy', 'healthy slider', 'typed', '60, 70')
+  await findElement('input#healthy', 'healthy slider', 'type', '60, 70')
   // Set presentation Slider
-  await findElement('input#presentation', 'presentation slider', 'typed', '70, 80')
+  await findElement('input#presentation', 'presentation slider', 'type', '70, 80')
   // Set Portion Size Slider
-  await findElement('input#quantity', 'Portion Size slider', 'typed', '80, 90')
+  await findElement('input#quantity', 'Portion Size slider', 'type', '80, 90')
   // Set Value for Price Slider
-  await findElement('input#value_for_price', 'Value for Price slider', 'typed', '90, 100')
+  await findElement('input#value_for_price', 'Value for Price slider', 'type', '90, 100')
   
   // Click on Restaurant Preferences
-  await findElement('a:nth-child(5)', 'Restaurant Preferences accordion', 'clicked') 
+  await findElement('a:nth-child(5)', 'Restaurant Preferences accordion', 'click') 
   // Set Noise level Slider
-  await findElement('input#noise_level', 'Noise level slider', 'typed', '0, 10')
+  await findElement('input#noise_level', 'Noise level slider', 'type', '0, 10')
   // Set Service Slider
-  await findElement('input#service_rating', 'Service slider', 'typed', '10, 20')
+  await findElement('input#service_rating', 'Service slider', 'type', '10, 20')
   // Set Ambiance Slider
-  await findElement('input#classy_ambience', 'Ambiance slider', 'typed', '20, 30')
+  await findElement('input#classy_ambience', 'Ambiance slider', 'type', '20, 30')
   // Set Ambiance Slider
-  await findElement('input#cleanliness', 'Ambiance slider', 'typed', '30, 40')
+  await findElement('input#cleanliness', 'Ambiance slider', 'type', '30, 40')
 
 
   // Click on Past Ratings
-  await findElement('a:nth-child(6)', 'Past Ratings accordion', 'clicked')
+  await findElement('a:nth-child(6)', 'Past Ratings accordion', 'click')
   // Take picture of past ratings page
   await takeApic('past_ratings', true)
 
 
   // Click on Account Settings
-  await findElement('a:nth-child(7)', 'Account Settings accordion', 'clicked')
+  await findElement('a:nth-child(7)', 'Account Settings accordion', 'click')
   // Click on Password Change
-  await findElement('a[href="/users/password/change"]', 'Password change button', 'clicked') 
+  await findElement('a[href="/users/password/change"]', 'Password change button', 'click') 
   // Type current Password
-  await findElement('input[placeholder="Current Password"]', 'Current Password input', 'typed', pass[0])
+  await findElement('input[placeholder="Current Password"]', 'Current Password input', 'type', pass[0])
   // Type New Password
-  await findElement('input[placeholder="New Password"]', 'New Password input', 'typed', pass[1])
+  await findElement('input[placeholder="New Password"]', 'New Password input', 'type', pass[1])
   // Type Confirm New Password
-  await findElement('input[placeholder="Confirm New Password"]', 'Confirm New Password input', 'typed', pass[1])
+  await findElement('input[placeholder="Confirm New Password"]', 'Confirm New Password input', 'type', pass[1])
 
   // In case of Error pop-up, Click on Cancel button
-  await clickErrorPopup()
+  await findElement('button.confirm', 'Error Pop-up confirm button', 'click')
 
   // Click on Account Settings a 2nd time
-  await findElement('a:nth-child(7)', 'Account Settings accordion', 'clicked')
+  await findElement('a:nth-child(7)', 'Account Settings accordion', 'click')
   // Click on Password Change a 2nd time
-  await findElement('a[href="/users/password/change"]', 'Password change button', 'clicked') 
+  await findElement('a[href="/users/password/change"]', 'Password change button', 'click') 
   // Type current Password a 2nd time
-  await findElement('input[placeholder="Current Password"]', 'Current Password input', 'typed', pass[1])
+  await findElement('input[placeholder="Current Password"]', 'Current Password input', 'type', pass[1])
   // Type New Password a 2nd time
-  await findElement('input[placeholder="New Password"]', 'New Password input', 'typed', pass[0])
+  await findElement('input[placeholder="New Password"]', 'New Password input', 'type', pass[0])
   // Type Confirm New Password a 2nd time
-  await findElement('input[placeholder="Confirm New Password"]', 'Confirm New Password input', 'typed', pass[0])
+  await findElement('input[placeholder="Confirm New Password"]', 'Confirm New Password input', 'type', pass[0])
 
   // In case of Error pop-up, Click on Cancel button
-  await clickErrorPopup()
-
+  await findElement('button.confirm', 'Error Pop-up confirm button', 'click')
 
   // Click on the Add Referrer Accordion
-  await findElement('a:nth-child(8)', 'Add Referrer Accordion', 'clicked')
+  await findElement('a:nth-child(8)', 'Add Referrer Accordion', 'click')
   // Input referrer e-mail
-  await findElement('input#referrer-email', 'Email', 'typed', email[1])
+  await findElement('input#referrer-email', 'Email', 'type', email[1])
   // Click on Send Invite Button
-  await findElement('button.send-referral', 'Send Invite Button', 'clicked')
+  await findElement('button.send-referral', 'Send Invite Button', 'click')
 
   
   // Click on Home/Search Link
-  await findElement('a[href="/"]', 'Navbar Toggle', 'clicked')
+  await findElement('a[href="/"]', 'Navbar Toggle', 'click')
 
   // Click on Share Link
-  await findElement('a[href="/socialshare"]', 'Social Share link', 'clicked')
+  await findElement('a[href="/socialshare"]', 'Social Share link', 'click')
   // Click on Twitter social share button
-  await findElement('iframe.twitter-share-button', 'Twitter social Share button', 'clicked')
+  await findElement('iframe.twitter-share-button', 'Twitter social Share button', 'click')
   await takeApic('twitterPopup', true)
   // Click on Facebook social share button
-  await findElement('iframe[title="fb:share_button Facebook Social Plugin"]', 'Facebook social Share button', 'clicked')
+  await findElement('iframe[title="fb:share_button Facebook Social Plugin"]', 'Facebook social Share button', 'click')
   await takeApic('facebookPopup', true)
   // Click on LinkedIn social share button
-  await findElement('span#li_ui_li_gen_1527968981535_0', 'LinkedIn social Share button', 'clicked')
+  await findElement('span#li_ui_li_gen_1527968981535_0', 'LinkedIn social Share button', 'click')
   await takeApic('linkedInPopup', true)
   // Click on Google social share button
-  await findElement('iframe[title="G+"]', 'Google social Share button', 'clicked')
+  await findElement('iframe[title="G+"]', 'Google social Share button', 'click')
   await takeApic('googlePopup', true)
   // Type Social Share E-mail
-  await findElement('input#referrer-email', 'Email', 'typed', email[1])
+  await findElement('input#referrer-email', 'Email', 'type', email[1])
   // Type Social Share E-mail text
-  await findElement('textarea.form-control', 'textarea', 'typed', 'Hello, this is a test')
+  await findElement('textarea.form-control', 'textarea', 'type', 'Hello, this is a test')
   // Click on Send Invite button
-  await findElement('button#sent_invite', 'social share e-mail send button', 'clicked')
+  await findElement('button#sent_invite', 'social share e-mail send button', 'click')
   
   
   // Click on Feedback link
-  await findElement('#feedback', 'Feedback link', 'clicked')
+  await findElement('#feedback', 'Feedback link', 'click')
   // Enter subject on subject line
-  await findElement('input#feedback-subject', 'subject line', 'typed', 'testing')
+  await findElement('input#feedback-subject', 'subject line', 'type', 'testing')
   // Type Social Share E-mail text
-  await findElement('textarea.form-control', 'textarea', 'typed', 'Hello, this is the Auto-regression tester.  I\'m testing the feedback e-mail functionality.')
+  await findElement('textarea.form-control', 'textarea', 'type', 'Hello, this is the Auto-regression tester.  I\'m testing the feedback e-mail functionality.')
   // Click on Send Feedback
-  await findElement('textarea.form-control', 'textarea', 'typed', 'Hello, this is the Auto-regression tester.  I\'m testing the feedback e-mail functionality.')
-  await findElement('button[type="submit"]', 'Feedback send button', 'clicked')
+  await findElement('textarea.form-control', 'textarea', 'type', 'Hello, this is the Auto-regression tester.  I\'m testing the feedback e-mail functionality.')
+  await findElement('button[type="submit"]', 'Feedback send button', 'click')
   
 
   // Click on Home/Search Link
-  await findElement('a[href="/"]', 'Home/Search link', 'clicked')
+  await findElement('a[href="/"]', 'Home/Search link', 'click')
   //default food tab for finding a food
-  await findElement('.item-input', '\'Pizza\'', 'typed', 'Pizza')
+  await findElement('.item-input', '\'Pizza\'', 'type', 'Pizza')
   // Type zipcode
-  await findElement('#locationinput', 'zip code \'11385\'', 'typed', '11385')
+  await findElement('#locationinput', 'zip code \'11385\'', 'type', '11385')
   // Click on Search food & drink
-  await findElement('button[id="searchbutton"]', 'Search Button', 'clicked')
+  await findElement('button[id="searchbutton"]', 'Search Button', 'click')
   // Take a picture of the results
   takeApic(title, true)
  
   // Click on Home/Search Link
-  await findElement('#toRestaurant', 'Restaurant tab', 'clicked')
+  await findElement('#toRestaurant', 'Restaurant tab', 'click')
   
   //Click on Restaurant Tab
-  await findElement('a[href="/"]', 'Navbar Toggle', 'clicked')
+  await findElement('a[href="/"]', 'Navbar Toggle', 'click')
   //Type name of restaurant
-  await findElement('.restaurant-input', 'Restaurant input', 'typed', 'Hetman\'s')
+  await findElement('.restaurant-input', 'Restaurant input', 'type', 'Hetman\'s')
   // Type zipcode
-  await findElement('#locationinput', 'zip code \'11385\'', 'typed', '11385')
+  await findElement('#locationinput', 'zip code \'11385\'', 'type', '11385')
   // Click on Search
-  await findElement('button[id="searchbutton"]', 'Search Button', 'clicked')
+  await findElement('button[id="searchbutton"]', 'Search Button', 'click')
   // Take a picture of the results
   takeApic('restaurant_search_result', true)
   
   // Click on 'View This restaurant'
-  await findElement('.view-venue-btn', 'view this restaurant button', 'clicked')
+  await findElement('.view-venue-btn', 'view this restaurant button', 'click')
   // Upload Restaurant picture 
-  await findElement('#fileInput', 'restaurant upload', 'uploaded', 'restaurant.jpg')
+  await findElement('#fileInput', 'restaurant upload', 'upload', 'restaurant.jpg')
 
   
   // Take picture of uploaded restaurant
