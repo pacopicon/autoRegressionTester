@@ -42,72 +42,67 @@ require('dotenv').config();
   const t = () => ((new Date()).toTimeString()).slice(0,8)
   const tn = () => (new Date()).getTime()
   const tn1 = tn()
-_
-  const click = async (elem, title) => {
-      await page.waitForSelector(elem, true, false, timeout)
-      await page.click(elem)
-      return `${title} was clicked at ${t()}.\n`
+
+  const click = async (numStr, elem, title) => {
+    await page.waitForSelector(elem, true, false, timeout)
+    await page.click(elem)
+    console.log(`fn() no. ${numStr}: ${title} was clicked at ${t()}.\n`)
   }
 
-  const type = async(elem, input, title) => {
+  const type = async(numStr, elem, input, title) => {
     await page.waitForSelector(elem, true, false, timeout)
     await page.type(elem, input, title)
-    return `${title} was typed in the ${title} input at ${t()}.\n`
+    console.log(`fn() no. ${numStr}: ${title} was typed in the ${title} input at ${t()}.\n`)
   }
 
-  const clickCheckbox = (elem, title) => {
+  const clickCheckbox = async(numStr, elem, title) => {
     const checkbox = await page.$(elem)
     await checkbox.click()
     const checked = await page.evaluate(checkbox => checkbox.checked, checkbox)
-    return `${title} was rendered ${!checked ? 'UN-' : ''}checked`
+    console.log(`fn() no. ${numStr}: ${title} was rendered ${!checked ? 'UN-' : ''}checked`)
   }
 
-  const upload = (elem, title, pic) => {
-    const uploadInput = page.$(elem)
+  const upload = async(numStr, elem, title, pic) => {
+    return
+    console.log('elem = ', elem)
+    console.log('pic = ', pic)
+    // const uploadInput = await page.$(elem)
+    console.log('uploadInput = ', uploadInput)
     await uploadInput.uploadFile(pic)
-    return `${pic} was uploaded to ${title}`
+     console.log(`fn() no. ${numStr}: ${pic} was uploaded to ${title}`) 
   }
 
-  const takeApic = (title, isFullPage) => {
+  const takeApic = async(numStr, title, isFullPage) => {
     const fn = `${title}.png`
     await page.screenshot( {path: fn, fullPage: isFullPage} )
-    console.log(`A picture of ${title} was taken`)
+    console.log(`fn() no. ${numStr}: A picture of ${title} was taken`)
   }
 
-  const findElement = async (elem, title, action, input) => {
-    let package = { elem }, callback, msg
+  const findElement = async(numStr, elem, title, action, input) => {
+    // numStr is a string number that uniquely identifies all findElement functions when they are called.  This is to help devs localize the last successful findelement function, so that they can immediately jump to the next "unsuccessful" findelement function and debug quickly.
     if (typeof elem !== 'undefined') {
-      await page.waitForSelector(elem, true, false, timeout)
 
       if (action === 'typed') {
-        msg = type(elem, input, title)
+        await type(numStr, elem, input, title)
       } else if (action === 'clicked') {
-        msg = click(elem, title)
+        await click(numStr, elem, title)
       } else if (action === 'checked') {
-        msg = clickCheckbox(elem, title)
+        await clickCheckbox(numStr, elem, title)
       } else if (action === 'uploaded') {
-        msg = upload(elem, title, input)
+        await upload(numStr, elem, title, input)
       }
-      console.log(msg)
-      package.success = true
-      package.msg = msg
-      return package
     } else {
       let msg = `puppeteer: Could not find: ${elem} -- the DOM element for the ${title}`
       console.log(msg)
-      takeApic(title, true)
-      package.success = false
-      package.msg = msg
-      return package
+      await takeApic(title, true)
     }
   }
 
-  const clickErrorPopup = () => {
+  const clickErrorPopup = async() => {
     await findElement('button.confirm', 'Error Pop-up confirm button', 'clicked')
   }
 
   // launch browser, open brower page
-  
 
   console.log(`puppeteer: Hi, I'm the puppeteer.  I will now test your website.  The time is ${t()}\n`)
   const browser = await puppeteer.launch()
@@ -123,16 +118,22 @@ _
 
   // Click on login button
   await findElement('a[href="/users/login"]', 'Login Button', 'clicked')
+
   // Type email
   await findElement('input[type="email"]', 'email', 'typed', email[0],)
+
   // Type password
   await findElement('input[type="password"]', 'password', 'typed', pass[0],)
+
   // Click on submit
   await findElement('button[type="submit"]', 'Submit Button', 'clicked')
+
   // Click on the navbar toggle
   await findElement('.navbar-toggle', 'Navbar Toggle', 'clicked')
+
   // Click on My PlateRate Link
-  await findElement('a[href="/users/profile"]', 'My PlateRate link', 'clicked')
+  await findElement('a[href="/users/profile"]', 'My PlateRate link', 
+  'clicked')
 
   // In case of Error pop-up, Click on Cancel button
   await clickErrorPopup()
