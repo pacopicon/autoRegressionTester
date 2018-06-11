@@ -48,15 +48,15 @@ require('dotenv').config();
   let tally = 1
 
   const fnTally = () => (tally++)
-  const errMsg = (action, title, err) => {
-    let msg = `fn() no. ${fnTally()} - time: ${t()}. DID NOT ${action} on ${title}.  ${err}. \n`
+  const errMsg = (tally, action, title, err) => {
+    let msg = `fn() no. ${tally} - time: ${t()}. DID NOT ${action} on ${title}.  ${err}. \n`
 
     return msg
   }
 
   const findElement = async(elem, title, action, input, isFullPage) => {
-    let msg, isError = false
-
+    let msg, isError = false, tally = fnTally()
+    
     if (!isBrowserClosed) {
       try {
         if (action === 'check') {
@@ -78,14 +78,15 @@ require('dotenv').config();
             let path = `${title}.png`
             await page.screenshot({ path, fullPage: isFullPage })
           } 
-          msg = `fn() no. ${fnTally()} - time: ${t()}. '${title}' (${elem}) was ${action}${action === 'type' ? 'd' : 'ed'}.\n`
+          msg = `fn() no. ${tally} - time: ${t()}. '${title}' (${elem}) was ${action}${action === 'type' ? 'd' : 'ed'}.\n`
+          await page.screenshot({ path: `${tally}.png`, fullPage: true })
         } catch(err) {
-          msg = errMsg(action, title, err)
+          msg = errMsg(tally, action, title, err)
           isError = true
         }
   
       } catch(err) {
-        msg = errMsg(action, title, err)
+        msg = errMsg(tally, action, title, err)
         isError = true
       }
   
@@ -98,7 +99,7 @@ require('dotenv').config();
         
       }
     } else {
-      console.log(`${errMsg(action, title, err)} The Browser is now closed.\n`)
+      console.log(`${errMsg(tally, action, title, err)} The Browser is now closed.\n`)
     }
   }
 
@@ -119,15 +120,15 @@ require('dotenv').config();
   await findElement('a[href="/users/login"]', 'Login Button', 'click')
 
   // Type email
-  await findElement('input[type="email"]', 'email', 'type', email[0],)
+  await findElement('input[type="email"]', 'email', 'type', email[0])
 
   // Type password
-  await findElement('input[type="password"]', 'password', 'type', pass[0],)
+  await findElement('input[type="password"]', 'password', 'type', pass[0])
 
   // Click on submit
   await findElement('button[type="submit"]', 'Submit Button', 'click')
 
-  // // Click on the navbar toggle
+  // Click on the navbar toggle
   await findElement('button.navbar-toggle', 'Navbar Toggle', 'click')
 
   // Click on My PlateRate Link
@@ -135,7 +136,6 @@ require('dotenv').config();
   'click')
 
   // In case of Error pop-up, Click on Cancel button
-  await findElement('button.confirm', 'Error Pop-up confirm button', 'click')
   await findElement('button.confirm', 'Error Pop-up confirm button', 'click')
 
   // Click on Name and Email accordion
@@ -145,7 +145,7 @@ require('dotenv').config();
   // Type First Name
   await findElement('input#firstName', 'First Name', 'type', 'Deep')
   // Type Last Name
-  await findElement('input#lastName', 'Last Name', 'type', 'Mind',)
+  await findElement('input#lastName', 'Last Name', 'type', 'Mind')
   // Type Email
   await findElement('input#email', 'Email', 'type', email[1])
   // Click on Personal Information
